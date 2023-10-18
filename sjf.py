@@ -1,51 +1,40 @@
-class Proceso:
-    def __init__(self, nombre, tiempo_llegada, duracion):
-        self.nombre = nombre
-        self.tiempo_llegada = tiempo_llegada
-        self.duracion = duracion
+def sjf(processes, n):
+    # Sort processes based on their burst time
+    processes.sort(key=lambda x: x[1])
 
-def sjf(procesos):
-    tiempo_actual = 0
-    procesos_ordenados = []
-    tiempo_espera_total = 0
+    # Initialize waiting time and turnaround time arrays
+    waiting_time = [0] * n
+    turnaround_time = [0] * n
 
-    while len(procesos) > 0:
-        # Filtrar los procesos que han llegado hasta el tiempo actual
-        procesos_disponibles = [p for p in procesos if p.tiempo_llegada <= tiempo_actual]
+    # Calculate waiting time and turnaround time
+    waiting_time[0] = 0
+    turnaround_time[0] = processes[0][1]
 
-        if len(procesos_disponibles) == 0:
-            # Si no hay procesos disponibles, avanzamos en el tiempo
-            tiempo_actual += 1
-        else:
-            # Ordenar los procesos disponibles por duración
-            procesos_disponibles.sort(key=lambda p: p.duracion)
-            
-            # Tomar el proceso más corto
-            proceso_elegido = procesos_disponibles[0]
-            procesos_ordenados.append(proceso_elegido)
+    for i in range(1, n):
+        waiting_time[i] = turnaround_time[i - 1]
+        turnaround_time[i] = waiting_time[i] + processes[i][1]
 
-            # Actualizar el tiempo actual y el tiempo de espera total
-            tiempo_actual += proceso_elegido.duracion
-            tiempo_espera_total += tiempo_actual - proceso_elegido.tiempo_llegada
+    # Calculate the average waiting time and average turnaround time
+    total_waiting_time = sum(waiting_time)
+    total_turnaround_time = sum(turnaround_time)
 
-            # Eliminar el proceso de la lista de procesos pendientes
-            procesos.remove(proceso_elegido)
+    avg_waiting_time = total_waiting_time / n
+    avg_turnaround_time = total_turnaround_time / n
 
-    return procesos_ordenados, tiempo_espera_total / len(procesos_ordenados)
+    # Display the scheduling results
+    print("\nProcess\tBurst Time\tWaiting Time\tTurnaround Time")
+    for i in range(n):
+        print(f"P{i+1}\t\t{processes[i][1]}\t\t{waiting_time[i]}\t\t{turnaround_time[i]}")
 
-# Ejemplo de uso
-if __name__ == "__main__":
-    procesos = [
-        Proceso("P1", 0, 6),
-        Proceso("P2", 1, 8),
-        Proceso("P3", 2, 7),
-        Proceso("P4", 3, 3)
-    ]
+    print("\nAverage Waiting Time:", avg_waiting_time)
+    print("Average Turnaround Time:", avg_turnaround_time)
 
-    procesos_ordenados, tiempo_espera_promedio = sjf(procesos)
+# Input the number of processes
+n = int(input("Enter the number of processes: "))
 
-    print("Procesos en orden de ejecución:")
-    for proceso in procesos_ordenados:
-        print(f"{proceso.nombre} (Tiempo de espera: {proceso.tiempo_llegada})")
+processes = []
+for i in range(n):
+    burst_time = int(input(f"Enter the burst time for process P{i+1}: "))
+    processes.append((i, burst_time))
 
-    print(f"Tiempo de espera promedio: {tiempo_espera_promedio}")  
+sjf(processes, n)
